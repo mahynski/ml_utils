@@ -10,7 +10,7 @@ before_install:
   - pip install -r requirements.txt
   - pip install codecov
 env:
-  - CODECOV_TOKEN="b83163ee-4cd1-4810-927a-17249b3a6f97"
+  - CODECOV_TOKEN="533ccbb6-79b5-41ef-be83-1faa52f5cef6"
 script: python -m unittest discover tests/
 after_success:
   - codecov
