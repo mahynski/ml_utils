@@ -20,7 +20,7 @@ class NestedCV:
     hyperparameters determined via the inner loop.  For doing statistical
     tests we want to have the test scores from all the inner loops and are not
     interested in re-training and scoring on the outer loop.  The outer loop
-    is just a way to "shift" or decorrelate the daat chunks relative to simple
+    is just a way to "shift" or decorrelate the data chunks relative to simple
     repeated CV.
 
     This is used to assess the generalization error of an entire pipeline,

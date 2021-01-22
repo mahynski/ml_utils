@@ -40,7 +40,7 @@ class PipeBorutaSHAP:
     ...     ("smote", ScaledSMOTEENN(k_enn=5, kind_sel_enn='mode')),
     ...     ("scaler", StandardScaler()),
     ...     ("boruta", PipeBorutaSHAP(column_names=X.columns)),
-    ...     ('tree', DecisionTreeClassifier())
+    ...     ('tree', DecisionTreeClassifier(random_state=0))
     ...     ])
     >>> param_grid = [
     ...     {'smote__k_enn':[3, 5],

@@ -38,7 +38,7 @@ class ScaledSMOTEENN:
     >>> pipeline = imblearn.pipeline.Pipeline(steps=[
     ...     ("smote", ScaledSMOTEENN()),
     ...     ("scaler", StandardScaler()),
-    ...     ("tree", DecisionTreeClassifier())
+    ...     ("tree", DecisionTreeClassifier(random_state=0))
     ...     ])
     >>> param_grid = [
     ...     {'smote__k_enn':[3, 5],
