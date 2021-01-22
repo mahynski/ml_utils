@@ -36,7 +36,7 @@ class PipeBorutaSHAP:
     Example
     -------
     >>> X, y = pd.read_csv(...), pd.read_csv(...)
-    >>> pipeline = imblearn.Pipeline(steps=[
+    >>> pipeline = imblearn.pipeline.Pipeline(steps=[
     ...     ("smote", ScaledSMOTEENN(k_enn=5, kind_sel_enn='mode')),
     ...     ("scaler", StandardScaler()),
     ...     ("boruta", PipeBorutaSHAP(column_names=X.columns)),

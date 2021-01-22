@@ -88,7 +88,7 @@ class NestedCV:
             # decorrelate different repeats of the inner fold.  The "basic"
             # alternative is not to bother with the "outer fold" and just
             # repeat the inner fold procedure k_outer times (on the same data).
-            scores = np.concatenate((scores, self.get_test_scores(pipeline)))
+            scores = np.concatenate((scores, self.get_test_scores_(pipeline)))
 
         return scores
 
@@ -129,7 +129,7 @@ class NestedCV:
             return_train_score=True,  # Results from the test folds are stored
         )
 
-        scores = self.outer_loop(
+        scores = self.outer_loop_(
             gs,
             X,
             y,

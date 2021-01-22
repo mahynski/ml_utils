@@ -35,7 +35,7 @@ class ScaledSMOTEENN:
 
     Example
     -------
-    >>> pipeline = imblearn.Pipeline(steps=[
+    >>> pipeline = imblearn.pipeline.Pipeline(steps=[
     ...     ("smote", ScaledSMOTEENN()),
     ...     ("scaler", StandardScaler()),
     ...     ("tree", DecisionTreeClassifier())
