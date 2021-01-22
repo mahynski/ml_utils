@@ -1,4 +1,5 @@
 BorutaShap
 imblearn
 numpy
+pandas
 sklearn

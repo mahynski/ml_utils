@@ -19,7 +19,43 @@ class PipeBorutaSHAP:
 
     This is essentially a wrapper for
     [BorutaSHAP](https://github.com/Ekeany/Boruta-Shap). See
-    documentation therein for additional details.
+    documentation therein for additional details. This requires input as a
+    Pandas DataFrame so an internal conversion will be performed.  Also,
+    you must provide the names of the original columns (in order) at
+    instantiation.
+
+    BorutaSHAP works with tree-based models which do not require scaling or
+    other preprocessing, therefore this stage can actually be put in the
+    pipeline either before or after standard scaling (see example below).
+
+    Notes
+    -----
+    BorutaSHAP is expensive; default parameters are set to be gentle but it can
+    dramatically increase the cost of nested CV or grid searching.
+
+    Example
+    -------
+    >>> X, y = pd.read_csv(...), pd.read_csv(...)
+    >>> pipeline = imblearn.Pipeline(steps=[
+    ...     ("smote", ScaledSMOTEENN(k_enn=5, kind_sel_enn='mode')),
+    ...     ("scaler", StandardScaler()),
+    ...     ("boruta", PipeBorutaSHAP(column_names=X.columns)),
+    ...     ('tree', DecisionTreeClassifier())
+    ...     ])
+    >>> param_grid = [
+    ...     {'smote__k_enn':[3, 5],
+    ...     'smote__kind_sel_enn':['all', 'mode'],
+    ...     'tree__max_depth':[3,5],
+    ...     'boruta__pvalue':[0.05, 0.1]
+    ...     }]
+    >>> gs = GridSearchCV(estimator=pipeline,
+    ...     param_grid=param_grid,
+    ...     n_jobs=-1,
+    ...     cv=StratifiedKFold(n_splits=2, random_state=1, shuffle=True)
+    ...     )
+    >>> gs.fit(X.values, y.values)
+    >>> # OR, ...
+    >>> NestedCV().grid_search(pipeline, param_grid, X.values, y.values)
     """
 
     def __init__(
