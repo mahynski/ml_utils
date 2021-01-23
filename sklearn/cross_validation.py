@@ -117,7 +117,7 @@ class NestedCV:
         scores : ndarray
             Array of length K*R containing scores from all test folds.
         """
-        gs = GridSearchCV(
+        self.gs = GridSearchCV(
             estimator=pipeline,
             param_grid=param_grid,
             n_jobs=-1,
@@ -130,7 +130,7 @@ class NestedCV:
         )
 
         scores = self.outer_loop_(
-            gs,
+            self.gs,
             X,
             y,
             cv=StratifiedKFold(
