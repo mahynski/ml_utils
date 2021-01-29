@@ -312,7 +312,8 @@ class JensenShannonDivergence:
                 _ = ax_.set_xticklabels(xv, rotation=90)
                 plt.tight_layout()
         else:  # Plot results by mean across all classes
-            fig, ax = plt.figure(figsize=figsize)
+            fig = plt.figure(figsize=figsize)
+            ax = plt.gca()
             if self.per_class:
                 arbitrary_class = self.divergence.keys()[0]
                 xv = [a[0] for a in self.divergence[arbitrary_class]]
