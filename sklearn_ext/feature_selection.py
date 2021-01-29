@@ -256,7 +256,7 @@ class JensenShannonDivergence:
 
         return X[:, self.__mask_]
 
-    def visualize(self, classes=None, threshold=None, ax=None):
+    def visualize(self, classes=None, threshold=None, ax=None, figsize=None):
         """
         Plot divergences for each class.
 
@@ -269,10 +269,14 @@ class JensenShannonDivergence:
         ax : list(matplotlib.pyplot.axes.Axes) or None
             If None, creates its own plots, otherwise plots on the axes
             given.
+        figsize : tuple(int,int) or None
+            Figure size to produce.
         """
         disp_classes = np.unique(self.__y_) if classes is None else classes
         if ax is None:
-            fig, ax = plt.subplots(nrows=len(disp_classes), ncols=1)
+            fig, ax = plt.subplots(nrows=len(disp_classes), ncols=1,
+                    figsize=figsize
+                    )
             ax = ax.ravel()
         else:
             try:
@@ -292,8 +296,10 @@ class JensenShannonDivergence:
                 yv = [a[1] for a in resorted]
 
             ax_.bar(x=xv, height=yv)
-            ax_.axhline(threshold, color="r")
-            _ = ax_.set_xticklabels(ax_.get_xticklabels(), rotation=90)
+            if threshold is not None:
+                ax_.axhline(threshold, color="r")
+            _ = ax_.set_xticklabels(xv, rotation=90)
+            plt.tight_layout()
 
     @property
     def accepted(self):
