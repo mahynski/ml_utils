@@ -4,6 +4,7 @@ Feature selection algorithms.
 @author: nam
 """
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from BorutaShap import BorutaShap
@@ -254,6 +255,45 @@ class JensenShannonDivergence:
             raise ValueError("The shape of X has changed")
 
         return X[:, self.__mask_]
+
+    def visualize(self, classes=None, threshold=None, ax=None):
+        """
+        Plot divergences for each class.
+
+        Parameters
+        ----------
+        classes : array-like
+            List of classes to plot; if None, plot all trained on.
+        threshold : float
+            Draws a horizontal red line to visualize this threshold.
+        ax : list(matplotlib.pyplot.axes.Axes) or None
+            If None, creates its own plots, otherwise plots on the axes
+            given.
+        """
+        disp_classes = np.unique(self.__y_) if classes is None else classes
+        if ax is None:
+            fig, ax = plt.subplots(nrows=len(disp_classes), ncols=1)
+            ax = ax.ravel()
+        else:
+            try:
+                iter(ax)
+            except TypeError:
+                ax = [ax]
+        for class_, ax_ in zip(disp_classes, ax):
+            ax_.set_title(class_)
+            if self.per_class:
+                xv = [a[0] for a in self.divergence[class_]]
+                yv = [a[1][class_] for a in self.divergence[class_]]
+            else:
+                xv = [a[0] for a in self.divergence]
+                yv = [a[1][class_] for a in self.divergence]
+                resorted = sorted(zip(xv, yv), key=lambda x: x[1], reverse=True)
+                xv = [a[0] for a in resorted]
+                yv = [a[1] for a in resorted]
+
+            ax_.bar(x=xv, height=yv)
+            ax_.axhline(threshold, color="r")
+            _ = ax_.set_xticklabels(ax_.get_xticklabels(), rotation=90)
 
     @property
     def accepted(self):

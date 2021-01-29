@@ -1,5 +1,7 @@
 BorutaShap
 imblearn
+matplotlib
 numpy
 pandas
+scipy
 sklearn
