@@ -80,9 +80,9 @@ class JensenShannonDivergence:
             non-zero when not measured; this is numerically required to
             compute the KL divergence as part of the JS divergence.
         per_class : bool
-            Do we want to return the top_k analytes (above threshold) overall
+            Do we want to return the top_k analytes (above threshold) on average
             (False) or the top_k per class (True)?  If True, up to
-            top_k*n_classes can be returned.
+            top_k*n_classes can be returned, otherwise just top_k above threshold.
         feature_names : array-like
             List of names of features (columns of X) in order.
         bins : int
@@ -168,16 +168,16 @@ class JensenShannonDivergence:
         self.__mask_ = np.array([False] * self.__X_.shape[1])
         if not self.per_class:
             # Just take top analytes regardless
-            # Sort based on max divergence across all classes
+            # Sort based on mean divergence across all classes
             self.__divergence_ = sorted(
                 self.__divergence_.items(),
-                key=lambda x: np.max(list(x[1].values())),
+                key=lambda x: np.mean(list(x[1].values())),
                 reverse=True,
             )
             for i in range(len(self.__divergence_)):
                 divs = self.__divergence_[i][1]
                 if (
-                    np.max(list(divs.values())) > self.threshold
+                    np.mean(list(divs.values())) > self.threshold
                     and i < self.top_k
                 ):
                     # If in top k and above threshold accept
@@ -321,7 +321,7 @@ class JensenShannonDivergence:
 
         If per_class is True, this returns a dictionary with sorted entries
         for each class, otherwise an array of (feature, {class:JS divergence})
-        is returned sorted by the highest overall JS divergence for that
+        is returned sorted by the highest average JS divergence for that
         feature.
         """
         return self.__divergence_.copy()
