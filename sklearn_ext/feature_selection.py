@@ -54,6 +54,24 @@ class JensenShannonDivergence:
     * https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence
     * https://machinelearningmastery.com/divergence-between-probability-
     distributions/
+
+    Example
+    -------
+    >>> pipeline = imblearn.pipeline.Pipeline(steps=[
+    ...    ("smote", ScaledSMOTEENN(random_state=1)),
+    ...    ("selector", JensenShannonDivergence(top_k=1,
+    ...                                         per_class=True,
+    ...                                         feature_names=X.columns)),
+    ...    ("tree", DecisionTreeClassifier(random_state=1))
+    ... ])
+    >>> param_grid = [{
+    ...    'smote__k_enn':[3, 5, 7, 10],
+    ...    'smote__k_smote':[3, 5, 7, 10],
+    ...    'smote__kind_sel_enn':['all', 'mode'],
+    ...    'tree__max_depth':np.arange(1,4+1),
+    ... }]
+    >>> ncv = NestedCV(k_inner=2, k_outer=5)
+    >>> results = ncv.grid_search(pipeline, param_grid, X.values, y.values)
     """
 
     def __init__(
@@ -279,6 +297,14 @@ class JensenShannonDivergence:
             given.
         figsize : tuple(int,int) or None
             Figure size to produce.
+
+        Example
+        -------
+        >>> js = JensenShannonDivergence(top_k=3,
+        ...                              feature_names=X.columns,
+        ...                              per_class=False)
+        >>> _ = js.fit(X, y)
+        >>> js.visualize(by_class=False, threshold=0.7)
         """
         if by_class:  # Plot results sorted by class
             disp_classes = np.unique(self.__y_) if classes is None else classes
@@ -356,6 +382,36 @@ class JensenShannonDivergence:
         for each class, otherwise an array of (feature, {class:JS divergence})
         is returned sorted by the highest average JS divergence for that
         feature.
+
+        Example
+        -------
+        >>> js.divergence # per_class=False
+        [('trans-chlordane', {'Larus (gull)': 0.7666381975219294,
+                              'Phoebastria (albatross)': 0.7899250953304608,
+                              'Uria (murre)': 0.9103582224128998}),
+        ('trans-nonachlor', {'Larus (gull)': 0.6710164255792366,
+                             'Phoebastria (albatross)': 0.6581336196968821,
+                             'Uria (murre)': 0.8520633525927908}),
+        ...
+        >>> js.divergence # per_class=True
+        {'Larus (gull)': [
+                ('PCB 110',
+                         {'Larus (gull)': 0.8600457234182239,
+                          'Phoebastria (albatross)': 0.2216666656792119,
+                          'Uria (murre)': 0.4488878856962035}),
+                ('PCB 52',
+                         {'Larus (gull)': 0.7746536806371277,
+                          'Phoebastria (albatross)': 0.14537496042116752,
+                          'Uria (murre)': 0.3151990265662022}),
+                ...
+                ]
+        'Phoebastria (albatross)' : [
+                ...
+                ]
+        'Uria (murre)' : [
+                ...
+                ]
+        }
         """
         return self.__divergence_.copy()
 
