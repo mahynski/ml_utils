@@ -82,7 +82,8 @@ class JensenShannonDivergence:
         per_class : bool
             Do we want to return the top_k analytes (above threshold) on average
             (False) or the top_k per class (True)?  If True, up to
-            top_k*n_classes can be returned, otherwise just top_k above threshold.
+            top_k*n_classes can be returned, otherwise just top_k above
+            threshold.
         feature_names : array-like
             List of names of features (columns of X) in order.
         bins : int
@@ -274,9 +275,9 @@ class JensenShannonDivergence:
         """
         disp_classes = np.unique(self.__y_) if classes is None else classes
         if ax is None:
-            fig, ax = plt.subplots(nrows=len(disp_classes), ncols=1,
-                    figsize=figsize
-                    )
+            fig, ax = plt.subplots(
+                nrows=len(disp_classes), ncols=1, figsize=figsize
+            )
             ax = ax.ravel()
         else:
             try:
