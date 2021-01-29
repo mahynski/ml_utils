@@ -341,7 +341,7 @@ class JensenShannonDivergence:
             _ = plt.figure(figsize=figsize)
             ax = plt.gca()
             if self.per_class:
-                arbitrary_class = self.divergence.keys()[0]
+                arbitrary_class = list(self.divergence.keys())[0]
                 xv = [a[0] for a in self.divergence[arbitrary_class]]
                 yv = [
                     np.mean(list(a[1].values()))
