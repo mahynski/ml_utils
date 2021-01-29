@@ -32,6 +32,10 @@ class ScaledSMOTEENN:
     they are often interchangeable, but not in this case.  Be sure to
     instantiate imblearn's version as in the example below.
 
+    This is because imblearn's pipelines intermediates allow fit,
+    transform, and resample methods; however, samplers are only
+    applied during the fitting stage (training).
+
     Example
     -------
     >>> pipeline = imblearn.pipeline.Pipeline(steps=[
