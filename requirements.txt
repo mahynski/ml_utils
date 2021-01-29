@@ -1,5 +1,6 @@
 BorutaShap
 imblearn
+IPython
 matplotlib
 numpy
 pandas
