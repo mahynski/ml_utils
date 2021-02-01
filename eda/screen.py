@@ -6,6 +6,7 @@ Screening tools for features of data.
 
 import itertools
 
+import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
 import tqdm
@@ -213,6 +214,9 @@ class JSScreen:
 
     def visualize_grid(self, ax=None):
         """Visualize the results with a heatmap."""
+        if ax is None:
+            ax = plt.figure().gca()
+
         ax = sns.heatmap(
             self.__grid_,
             ax=ax,
@@ -225,6 +229,9 @@ class JSScreen:
 
     def visualize_features(self, ax=None):
         """Visualize the mean feature results with a bar graph."""
+        if ax is None:
+            ax = plt.figure().gca()
+
         best = sorted(
             zip(
                 self.__row_labels_,
