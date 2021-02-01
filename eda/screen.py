@@ -227,20 +227,33 @@ class JSScreen:
         ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
         ax.set_title(r"$\nabla \cdot JS$")
 
-    def visualize_features(self, ax=None):
+    def visualize_features(self, method="max", ax=None):
         """Visualize the mean feature results with a bar graph."""
         if ax is None:
             ax = plt.figure().gca()
 
-        best = sorted(
-            zip(
-                self.__column_labels_,
-                np.mean(self.__grid_, axis=0),
-                np.std(self.__grid_, axis=0),
-            ),
-            key=lambda x: x[1],
-            reverse=True,
-        )
+        if method == "mean":
+            best = sorted(
+                zip(
+                    self.__column_labels_,
+                    np.mean(self.__grid_, axis=0),
+                    np.std(self.__grid_, axis=0),
+                ),
+                key=lambda x: x[1],
+                reverse=True,
+            )
+        elif method == "max":
+            best = sorted(
+                zip(
+                    self.__column_labels_,
+                    np.max(self.__grid_, axis=0),
+                    np.std(self.__grid_, axis=0),
+                ),
+                key=lambda x: x[1],
+                reverse=True,
+            )
+        else:
+            raise ValueError("Unrecognized method")
 
         ax.bar(
             x=[x[0] for x in best],
@@ -248,7 +261,7 @@ class JSScreen:
             yerr=[x[2] for x in best],
         )
         ax.set_xticklabels([x[0] for x in best], rotation=90)
-        ax.set_title("Feature mean +/- 1 " + r"$\sigma$")
+        ax.set_title("Feature {} +/- 1 ".format(method) + r"$\sigma$")
         ax.set_ylabel(r"$\langle \nabla \cdot JS  \rangle$")
 
     @property
