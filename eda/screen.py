@@ -247,7 +247,7 @@ class JSScreen:
             height=[x[1] for x in best],
             yerr=[x[2] for x in best],
         )
-        ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+        ax.set_xticklabels(self.__row_labels_, rotation=90)
         ax.set_title("Feature mean +/- 1 " + r"$\sigma$")
         ax.set_ylabel(r"$\langle \nabla \cdot JS  \rangle$")
 
