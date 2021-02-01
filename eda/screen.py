@@ -10,7 +10,7 @@ import numpy as np
 import seaborn as sns
 import tqdm
 
-from sklearn_ext.feature_selection import JensenShannonDivergence
+from ml_utils.sklearn_ext.feature_selection import JensenShannonDivergence
 
 
 class JSScreen:
