@@ -262,7 +262,9 @@ class JSScreen:
         )
         ax.set_xticklabels([x[0] for x in best], rotation=90)
         ax.set_title("Feature {} +/- 1 ".format(method) + r"$\sigma$")
-        ax.set_ylabel(r"$\langle \nabla \cdot JS  \rangle$")
+        ax.set_ylabel(r"$\nabla \cdot JS$")
+
+        return best
 
     @property
     def grid(self):
