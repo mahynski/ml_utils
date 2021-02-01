@@ -3,5 +3,5 @@ Load all modules.
 
 @author: nam
 """
-__all__ = ["sklearn_ext"]
-from . import sklearn_ext
+__all__ = ["eda", "sklearn_ext"]
+from . import eda, sklearn_ext

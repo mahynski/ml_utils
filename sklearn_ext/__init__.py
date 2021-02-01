@@ -3,4 +3,4 @@ Load all modules.
 
 @author: nam
 """
-__all__ = ["cross_validation", "imbalanced"]
+__all__ = ["cross_validation", "imbalanced", "feature_selection"]
