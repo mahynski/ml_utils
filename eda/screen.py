@@ -211,7 +211,7 @@ class JSScreen:
 
         return self
 
-    def visualize(self, ax=None):
+    def visualize_grid(self, ax=None):
         """Visualize the results with a heatmap."""
         ax = sns.heatmap(
             self.__grid_,
@@ -222,6 +222,27 @@ class JSScreen:
         )
         ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
         ax.set_title(r"$\nabla \cdot JS$")
+
+    def visualize_features(self, ax=None):
+        """Visualize the mean feature results with a bar graph."""
+        best = sorted(
+            zip(
+                self.__row_labels_,
+                np.mean(self.__grid_, axis=0),
+                np.std(self.__grid_, axis=0),
+            ),
+            key=lambda x: x[1],
+            reverse=True,
+        )
+
+        ax.bar(
+            x=[x[0] for x in best],
+            height=[x[1] for x in best],
+            yerr=[x[2] for x in best],
+        )
+        ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+        ax.set_title("Feature mean +/- 1 " + r"$\sigma$")
+        ax.set_ylabel(r"$\langle \nabla \cdot JS  \rangle$")
 
     @property
     def grid(self):
