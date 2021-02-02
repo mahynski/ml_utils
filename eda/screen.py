@@ -287,9 +287,9 @@ class JSScreen:
     def visualize_max(self, k=None, bins=25):
         """
         Visualize the distribution of the max feature for classes.
-        
+
         This will actually provide a visualization for all the top k
-        macroclasses, so this is usually best when n=1 so only 
+        macroclasses, so this is usually best when n=1 so only
         individual atomic classes are visualized.
 
         Example
@@ -315,9 +315,7 @@ class JSScreen:
             {a: b for a, b, c in best}.items(), key=lambda x: x[1], reverse=True
         )[:k]:
             plt.figure()
-            X_binary = pd.DataFrame(
-                data=self.__X_, columns=self.feature_names
-            )
+            X_binary = pd.DataFrame(data=self.__X_, columns=self.feature_names)
             X_binary["class"] = self.__y_
             X_binary["class"][self.__y_ != class_] = "OTHER"
             ax = sns.histplot(
@@ -331,7 +329,8 @@ class JSScreen:
                 common_norm=False,
             )
             ax.set_title(
-                class_ + r"; $\nabla \cdot JS = {}$".format("%.3f"%best_dict[class_])
+                class_
+                + r"; $\nabla \cdot JS = {}$".format("%.3f" % best_dict[class_])
             )
             _ = ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
@@ -339,6 +338,57 @@ class JSScreen:
     def grid(self):
         """Get the grid of Jensen-Shannon divergences computed."""
         return self.__grid_.copy()
+
+    def interesting(self, threshold=0.7, method="max", min_delta=0.0):
+        """
+        Try to find the "interesting" macroclasses.
+
+        In this example, we define "interesting merges" as those which cause a
+        positive delta of at least `min_delta` and raise the JS divergence to
+        above some `threshold` where it was initially below. Moreover, all the
+        individual classes must have divergences less than the net of all of
+        them less `min_delta` (i.e., merging is exclusively increasing the
+        distinguishibility of the macroclass rather than one simply "bringing
+        up the average").
+
+        Example
+        -------
+        >>> interest = screen.interesting()
+        >>> proposed_combinations = {}
+        >>> performances = {}
+        >>> idx = 0
+        >>> for row in interest:
+        ...     union = set(row[0][0].split(" AND ")).union({row[0][1]})
+        ...     add = True
+        ...     for k,v in proposed_combinations.items():
+        ...         if v == union:
+        ...             add = False
+        ...             break
+        ...     if add:
+        ...         proposed_combinations[idx] = union
+        ...         performances[idx] = row[1]['final']
+        ...         idx += 1
+        >>> proposed_combinations # Look at unique sets of interesting ones
+
+        Returns
+        -------
+        incremental : list([tuple(macroclass, addition), {'delta':change,
+        'final':JS, 'individuals':{class:JS}}])
+            Merges that are considered "interesting."
+        """
+        interest = []
+        for row in self.incremental(method=method):
+            if (
+                (row[1]["final"] > threshold)
+                and (row[1]["final"] - row[1]["delta"]) < threshold
+                and (row[1]["delta"] > min_delta)
+                and np.all(
+                    np.array(list(row[1]["individuals"].values()))
+                    < row[1]["final"] - min_delta
+                )
+            ):
+                interest.append(row)
+        return interest
 
     def incremental(self, method="max"):
         """
