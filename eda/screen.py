@@ -285,7 +285,19 @@ class JSScreen:
         return best
 
     def visualize_max(self, k=None, bins=25):
-        """Visualize the distribution of the max feature for classes."""
+        """
+        Visualize the distribution of the max feature for classes.
+        
+        This will actually provide a visualization for all the top k
+        macroclasses, so this is usually best when n=1 so only 
+        individual atomic classes are visualized.
+
+        Example
+        -------
+        >>> screen = JSScreen(n=1, feature_names=X.columns, js_bins=25)
+        >>> screen.fit(X, y)
+        >>> screen.visualize_max()
+        """
         best = self.visualize_classes(method="max", ax=None)
         if k is None:
             k = len(best)
@@ -304,8 +316,9 @@ class JSScreen:
         )[:k]:
             plt.figure()
             X_binary = pd.DataFrame(
-                data=self.__X_, column_names=self.feature_names
+                data=self.__X_, columns=self.feature_names
             )
+            X_binary["class"] = self.__y_
             X_binary["class"][self.__y_ != class_] = "OTHER"
             ax = sns.histplot(
                 hue="class",
@@ -318,7 +331,7 @@ class JSScreen:
                 common_norm=False,
             )
             ax.set_title(
-                class_ + r"$\nabla \cdot JS = {}$".format(best_dict[class_])
+                class_ + r"; $\nabla \cdot JS = {}$".format("%.3f"%best_dict[class_])
             )
             _ = ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
