@@ -244,8 +244,8 @@ class JSScreen:
         ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
         ax.set_title(r"$\nabla \cdot JS$")
 
-    def visualize_features(self, method="max", ax=None):
-        """Visualize the mean feature results with a bar graph."""
+    def visualize_classes(self, method="max", ax=None):
+        """Visualize the classes by summarizing over the features."""
         if ax is None:
             ax = plt.figure().gca()
 
@@ -312,10 +312,14 @@ class JSScreen:
 
         Returns
         -------
-        incremental : list([tuple(macroclass, addition), change])
+        incremental : list([tuple(macroclass, addition), {'delta':change, 'final':JS
+        'individuals':{class:JS}}])
             The change that results from merging "addition" with macroclass,
             sorted from highest to lowest.  Note that this is a signed change,
-            so you may wish to consider the magnitude instead.
+            so you may wish to consider the magnitude instead.  The 'final' JS is the
+            JS divergence of the new macroclass = macroclass + addition.  The JS
+            divergence for all the atomic classes is given in 'individuals' for 
+            comparison.
         """
         if method == "max":
             function = np.max
@@ -323,19 +327,31 @@ class JSScreen:
             function = np.mean
 
         d = {}
+        k = {}
         for j, combination in enumerate(self.__column_labels_):
-            d[set(self.merge(combination, split=True))] = function(
+            k[j] = set(self.merge(combination, split=True))
+            d[j] = function(
                 self.__grid_[:, j]
             )
 
+        def find(set_):
+            for j,v in k.items():
+                if v == set_:
+                    return j
+            raise ValueError("Could not find the set in question.")
+
         # Find which single additions resulted in the greatest "jumps"
         incremental = {}
-        for set_ in d.keys():
-            if len(set_) > 1:
-                for x in set_:
+        for j in d.keys():
+            if len(k[j]) > 1:
+                for x in k[j]:
+                    idx = find(k[j].difference({x}))
                     delta = (
-                        d[set_] - d[set_.difference(x)]
+                        d[j] - d[idx]
                     )  # Find the value if x was removed
-                    incremental[(set_.difference(x), x)] = delta
+                    incremental[(self.__column_labels_[idx], x)] = {'delta':delta, 
+                            'final':d[j], 
+                            'individuals':{c:d[find({c})] for c in k[j]}
+                            }
 
-        return sorted(incremental.items(), key=lambda x: x[1], reverse=True)
+        return sorted(incremental.items(), key=lambda x: x[1]['delta'], reverse=True)
