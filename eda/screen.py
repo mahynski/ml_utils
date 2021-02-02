@@ -8,6 +8,7 @@ import itertools
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import tqdm
 
@@ -283,6 +284,44 @@ class JSScreen:
 
         return best
 
+    def visualize_max(self, k=None, bins=25):
+        """Visualize the distribution of the max feature for classes."""
+        best = self.visualize_classes(method="max", ax=None)
+        if k is None:
+            k = len(best)
+
+        top_feature = list(
+            zip(
+                self.__column_labels_,
+                self.__row_labels_[np.argmax(self.__grid_, axis=0)],
+            )
+        )
+
+        best_dict = {a: b for a, b, c in best}
+        feat_dict = dict(top_feature)
+        for class_, _ in sorted(
+            {a: b for a, b, c in best}.items(), key=lambda x: x[1], reverse=True
+        )[:k]:
+            plt.figure()
+            X_binary = pd.DataFrame(
+                data=self.__X_, column_names=self.feature_names
+            )
+            X_binary["class"][self.__y_ != class_] = "OTHER"
+            ax = sns.histplot(
+                hue="class",
+                x=feat_dict[class_],
+                data=X_binary,
+                # multiple='stack',
+                palette="Set1",
+                stat="probability",
+                bins=bins,
+                common_norm=False,
+            )
+            ax.set_title(
+                class_ + r"$\nabla \cdot JS = {}$".format(best_dict[class_])
+            )
+            _ = ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
+
     @property
     def grid(self):
         """Get the grid of Jensen-Shannon divergences computed."""
@@ -312,14 +351,14 @@ class JSScreen:
 
         Returns
         -------
-        incremental : list([tuple(macroclass, addition), {'delta':change, 'final':JS
-        'individuals':{class:JS}}])
+        incremental : list([tuple(macroclass, addition), {'delta':change,
+        'final':JS, 'individuals':{class:JS}}])
             The change that results from merging "addition" with macroclass,
             sorted from highest to lowest.  Note that this is a signed change,
-            so you may wish to consider the magnitude instead.  The 'final' JS is the
-            JS divergence of the new macroclass = macroclass + addition.  The JS
-            divergence for all the atomic classes is given in 'individuals' for 
-            comparison.
+            so you may wish to consider the magnitude instead.  The 'final' JS
+            is the JS divergence of the new macroclass = macroclass + addition.
+            The JS divergence for all the atomic classes is given in
+            'individuals' for comparison.
         """
         if method == "max":
             function = np.max
@@ -330,12 +369,10 @@ class JSScreen:
         k = {}
         for j, combination in enumerate(self.__column_labels_):
             k[j] = set(self.merge(combination, split=True))
-            d[j] = function(
-                self.__grid_[:, j]
-            )
+            d[j] = function(self.__grid_[:, j])
 
         def find(set_):
-            for j,v in k.items():
+            for j, v in k.items():
                 if v == set_:
                     return j
             raise ValueError("Could not find the set in question.")
@@ -346,12 +383,13 @@ class JSScreen:
             if len(k[j]) > 1:
                 for x in k[j]:
                     idx = find(k[j].difference({x}))
-                    delta = (
-                        d[j] - d[idx]
-                    )  # Find the value if x was removed
-                    incremental[(self.__column_labels_[idx], x)] = {'delta':delta, 
-                            'final':d[j], 
-                            'individuals':{c:d[find({c})] for c in k[j]}
-                            }
+                    delta = d[j] - d[idx]  # Find the value if x was removed
+                    incremental[(self.__column_labels_[idx], x)] = {
+                        "delta": delta,
+                        "final": d[j],
+                        "individuals": {c: d[find({c})] for c in k[j]},
+                    }
 
-        return sorted(incremental.items(), key=lambda x: x[1]['delta'], reverse=True)
+        return sorted(
+            incremental.items(), key=lambda x: x[1]["delta"], reverse=True
+        )
