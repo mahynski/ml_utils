@@ -48,6 +48,14 @@ class JensenShannonDivergence:
     one class has k or more features that have very different distributions
     from the rest, and therefore the top_k are only useful for distinguishing
     one (or only a few) classes, so per_class=True is set to True by default.
+    * Using too many bins makes individual measurements all start to
+    look unique and therefore 2 distributions appear to have a large
+    JS divergence.  Be sure to try using a different number of bins
+    to check your results qualitatively.  This also means outliers
+    can be very problematic because they cause the the (max-min)
+    range to be amplified artificially, which might actually make
+    divergences look small because the bins are now too coarse.
+
 
     References
     -----
@@ -81,7 +89,7 @@ class JensenShannonDivergence:
         epsilon=1.0e-12,
         per_class=True,
         feature_names=None,
-        bins=100,
+        bins=25,
     ):
         """
         Instantiate the class.

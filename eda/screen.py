@@ -32,7 +32,15 @@ class JSScreen:
 
     Notes
     -----
-    This is a supervised method.
+    * This is a supervised method.
+
+    * Using too many bins makes individual measurements all start to
+    look unique and therefore 2 distributions appear to have a large
+    JS divergence.  Be sure to try using a different number of bins
+    to check your results qualitatively.  This also means outliers
+    can be very problematic because they cause the the (max-min)
+    range to be amplified artificially, which might actually make
+    divergences look small because the bins are now too coarse.
 
     Example
     -------
@@ -41,7 +49,7 @@ class JSScreen:
     >>> screen.visualize(plt.figure(figsize=(20,20)).gca())
     """
 
-    def __init__(self, n=None, feature_names=None, js_bins=100):
+    def __init__(self, n=None, feature_names=None, js_bins=25):
         """
         Instantiate the class.
 
@@ -126,9 +134,18 @@ class JSScreen:
         return y_macro
 
     @staticmethod
-    def merge(names):
+    def merge(names, clause="AND", split=False):
         """Naming convention for merging classes."""
-        return " AND ".join(names)
+        if not clause.startswith(" "):
+            clause = " " + clause
+        if not clause.endswith(" "):
+            clause = clause + " "
+        if not split:
+            # Merge together
+            return clause.join(names)
+        else:
+            # Split apart
+            return names.split(clause)
 
     def all_sets_(self, y, n):
         """
@@ -270,3 +287,55 @@ class JSScreen:
     def grid(self):
         """Get the grid of Jensen-Shannon divergences computed."""
         return self.__grid_.copy()
+
+    def incremental(self, method="max"):
+        """
+        Find the changes due to the addition of a single class to a macroclass.
+
+        For each macroclass, the difference of the method (max or mean) of the
+        JS divergences is computed when one atomic class is added to the
+        macroclass.  Postive values imply the new set is higher than before the
+        class has been added; negative means adding the new class decreases the
+        JS divergence (max or mean).
+
+        The point at which a large positive occurs, suggests that newly formed
+        macroclass represents a cluster that is separate from the other classes
+        that is now complete.  A large negative change indicates that you have
+        jsut added a class that overlaps the classes the in the macroclass; the
+        larger the change, the more significant the overlap (i.e. maybe more of
+        the constituent classes.
+
+        Parameters
+        ----------
+        method : str
+            Use the 'max' or the 'mean' of the JS divergences as the metric.
+
+        Returns
+        -------
+        incremental : list([tuple(macroclass, addition), change])
+            The change that results from merging "addition" with macroclass,
+            sorted from highest to lowest.  Note that this is a signed change,
+            so you may wish to consider the magnitude instead.
+        """
+        if method == "max":
+            function = np.max
+        elif method == "mean":
+            function = np.mean
+
+        d = {}
+        for j, combination in enumerate(self.__column_labels_):
+            d[set(self.merge(combination, split=True))] = function(
+                self.__grid_[:, j]
+            )
+
+        # Find which single additions resulted in the greatest "jumps"
+        incremental = {}
+        for set_ in d.keys():
+            if len(set_) > 1:
+                for x in set_:
+                    delta = (
+                        d[set_] - d[set_.difference(x)]
+                    )  # Find the value if x was removed
+                    incremental[(set_.difference(x), x)] = delta
+
+        return sorted(incremental.items(), key=lambda x: x[1], reverse=True)
