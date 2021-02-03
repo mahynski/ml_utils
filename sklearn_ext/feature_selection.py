@@ -7,7 +7,6 @@ Feature selection algorithms.
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from BorutaShap import BorutaShap
 from scipy.stats import entropy
 from sklearn.ensemble import RandomForestClassifier as RF
 
@@ -517,6 +516,8 @@ class PipeBorutaSHAP:
     def fit(self, X, y):
         """Fit BorutaSHAP to data."""
         # Convert X and y to pandas.DataFrame and series
+        from BorutaShap import BorutaShap
+
         self.__boruta_ = BorutaShap(
             model=self.model,
             importance_measure="shap",
