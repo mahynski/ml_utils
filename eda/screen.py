@@ -249,10 +249,11 @@ class JSScreen:
         ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
         ax.set_title(r"$\nabla \cdot JS$")
 
-    def visualize_classes(self, method="max", ax=None):
+    def visualize_classes(self, method="max", ax=None, display=True):
         """Visualize the classes by summarizing over the features."""
-        if ax is None:
-            ax = plt.figure().gca()
+        if display:
+            if ax is None:
+                ax = plt.figure().gca()
 
         if method == "mean":
             best = sorted(
@@ -277,18 +278,19 @@ class JSScreen:
         else:
             raise ValueError("Unrecognized method")
 
-        ax.bar(
-            x=[x[0] for x in best],
-            height=[x[1] for x in best],
-            yerr=[x[2] for x in best],
-        )
-        plt.xticks([x[0] for x in best], rotation=90)
-        ax.set_title("Feature {} +/- 1 ".format(method) + r"$\sigma$")
-        ax.set_ylabel(r"$\nabla \cdot JS$")
+        if display:
+            ax.bar(
+                x=[x[0] for x in best],
+                height=[x[1] for x in best],
+                yerr=[x[2] for x in best],
+            )
+            plt.xticks([x[0] for x in best], rotation=90)
+            ax.set_title("Feature {} +/- 1 ".format(method) + r"$\sigma$")
+            ax.set_ylabel(r"$\nabla \cdot JS$")
 
         return best
 
-    def visualize_max(self, top=None, bins=25):
+    def visualize_max(self, top=None, bins=25, ax=None):
         """
         Visualize the distribution of the max feature for classes.
 
@@ -302,7 +304,7 @@ class JSScreen:
         >>> screen.fit(X, y)
         >>> screen.visualize_max()
         """
-        best = self.visualize_classes(method="max", ax=None)
+        best = self.visualize_classes(method="max", ax=None, display=False)
         if top is None:
             top = len(best)
 
@@ -313,19 +315,26 @@ class JSScreen:
             )
         )
 
+        if ax is None:
+            fig, axes = plt.subplots(nrows=top, ncols=1)
+        else:
+            axes = ax
+
         best_dict = {a: b for a, b, c in best}
         feat_dict = dict(top_feature)
-        for class_, _ in sorted(
-            best_dict.items(), key=lambda x: x[1], reverse=True
+        for ax_, (class_, _) in list(
+            zip(
+                axes.ravel(),
+                sorted(best_dict.items(), key=lambda x: x[1], reverse=True),
+            )
         )[:top]:
-            plt.figure()
             X_binary = pd.DataFrame(data=self.__X_, columns=self.feature_names)
             y_ = self.__y_.copy()
             for c in self.merge(class_, split=True):
                 y_[self.__y_ == c] = class_
             y_[y_ != class_] = "OTHER"
             X_binary["class"] = y_
-            ax = sns.histplot(
+            ax_ = sns.histplot(
                 hue="class",
                 x=feat_dict[class_],
                 data=X_binary,
@@ -334,8 +343,9 @@ class JSScreen:
                 stat="probability",
                 bins=bins,
                 common_norm=False,
+                ax=ax_,
             )
-            ax.set_title(
+            ax_.set_title(
                 class_
                 + r"; $\nabla \cdot JS = {}$".format("%.3f" % best_dict[class_])
             )
