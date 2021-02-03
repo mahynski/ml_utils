@@ -67,7 +67,11 @@ class JSScreen:
             divergence.
         """
         self.set_params(
-            **{"feature_names": feature_names, "n": n, "js_bins": js_bins}
+            **{
+                "feature_names": np.array(feature_names, dtype=object),
+                "n": n,
+                "js_bins": js_bins,
+            }
         )
         return
 
@@ -278,7 +282,7 @@ class JSScreen:
             height=[x[1] for x in best],
             yerr=[x[2] for x in best],
         )
-        ax.set_xticklabels([x[0] for x in best], rotation=90)
+        plt.xticks([x[0] for x in best], rotation=90)
         ax.set_title("Feature {} +/- 1 ".format(method) + r"$\sigma$")
         ax.set_ylabel(r"$\nabla \cdot JS$")
 
@@ -312,12 +316,15 @@ class JSScreen:
         best_dict = {a: b for a, b, c in best}
         feat_dict = dict(top_feature)
         for class_, _ in sorted(
-            {a: b for a, b, c in best}.items(), key=lambda x: x[1], reverse=True
+            best_dict.items(), key=lambda x: x[1], reverse=True
         )[:k]:
             plt.figure()
             X_binary = pd.DataFrame(data=self.__X_, columns=self.feature_names)
-            X_binary["class"] = self.__y_
-            X_binary["class"][self.__y_ != class_] = "OTHER"
+            y_ = self.__y_.copy()
+            for c in self.merge(class_, split=True):
+                y_[self.__y_ == c] = class_
+            y_[y_ != class_] = "OTHER"
+            X_binary["class"] = y_
             ax = sns.histplot(
                 hue="class",
                 x=feat_dict[class_],
@@ -332,7 +339,6 @@ class JSScreen:
                 class_
                 + r"; $\nabla \cdot JS = {}$".format("%.3f" % best_dict[class_])
             )
-            _ = ax.set_xticklabels(ax.get_xticklabels(), rotation=90)
 
     @property
     def grid(self):
