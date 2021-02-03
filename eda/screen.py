@@ -288,7 +288,7 @@ class JSScreen:
 
         return best
 
-    def visualize_max(self, k=None, bins=25):
+    def visualize_max(self, top=None, bins=25):
         """
         Visualize the distribution of the max feature for classes.
 
@@ -303,8 +303,8 @@ class JSScreen:
         >>> screen.visualize_max()
         """
         best = self.visualize_classes(method="max", ax=None)
-        if k is None:
-            k = len(best)
+        if top is None:
+            top = len(best)
 
         top_feature = list(
             zip(
@@ -317,7 +317,7 @@ class JSScreen:
         feat_dict = dict(top_feature)
         for class_, _ in sorted(
             best_dict.items(), key=lambda x: x[1], reverse=True
-        )[:k]:
+        )[:top]:
             plt.figure()
             X_binary = pd.DataFrame(data=self.__X_, columns=self.feature_names)
             y_ = self.__y_.copy()
