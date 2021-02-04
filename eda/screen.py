@@ -23,7 +23,7 @@ class JSScreen:
     combine classes in all possible ways to form "macroclasses."
     The JS divergence is then computed for all features when
     one class is the macroclass and all others are combined to
-    form the opposing class.
+    form the opposing class (OvA method).
 
     This allows one to see if sets of classes can be separated from
     the rest of the "pack" according to certain features.  If
@@ -58,12 +58,12 @@ class JSScreen:
 
         Parameters
         ----------
-        feature_names : list(str)
-            Names of features (columns of X) in order.
         n : int or None
             Maximum macroclass size; will return all combinations
             up to the point of containing n atomic classes.  In
             None, goes from 1 to len(atomic_classes).
+        feature_names : list(str)
+            Names of features (columns of X) in order.
         js_bins : int
             Number of bins to use when computing the Jensen-Shannon
             divergence.
@@ -91,7 +91,8 @@ class JSScreen:
             "js_bins": self.js_bins,
         }
 
-    def macroclasses_(self, atomic_classes, n):
+    @staticmethod
+    def macroclasses(atomic_classes, n):
         """
         Create macroclasses from individual, atomic ones.
 
@@ -118,7 +119,8 @@ class JSScreen:
 
         return macro
 
-    def transform_(self, y, macroclass):
+    @staticmethod
+    def transform(y, macroclass, naming=None):
         """
         Transform classes into a macroclass.
 
@@ -128,6 +130,9 @@ class JSScreen:
             List of ground-truth classes.
         macroclass : tuple
             Tuple of classes that belong to the macroclass being created.
+        naming : callable
+            Function to name combinations of atomic classes; None defaults
+            to the JSScreen.merge() method.
 
         Returns
         -------
@@ -136,7 +141,8 @@ class JSScreen:
         """
         y_macro = np.array(y)
         mask = np.array([x in macroclass for x in y_macro])
-        y_macro[mask] = self.merge(macroclass)
+        namer = JSScreen.merge if naming is None else naming
+        y_macro[mask] = namer(macroclass)
 
         return y_macro
 
@@ -172,12 +178,12 @@ class JSScreen:
         transforms : dict(dict)
             Dictionary of {n:{macroclass:y}}.
         """
-        mc = self.macroclasses_(np.unique(y), n)
+        mc = self.macroclasses(np.unique(y), n)
         transforms = {}
         for k, v in mc.items():
             transforms[k] = {}
             for i, macro in enumerate(v):
-                transforms[k][self.merge(macro)] = self.transform_(y, macro)
+                transforms[k][self.merge(macro)] = self.transform(y, macro)
 
         return transforms
 
