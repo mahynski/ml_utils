@@ -34,7 +34,6 @@ class JSScreen:
     Notes
     -----
     * This is a supervised method.
-
     * Using too many bins makes individual measurements all start to
     look unique and therefore 2 distributions appear to have a large
     JS divergence.  Be sure to try using a different number of bins
@@ -42,6 +41,9 @@ class JSScreen:
     can be very problematic because they cause the the (max-min)
     range to be amplified artificially, which might actually make
     divergences look small because the bins are now too coarse.
+    * See sklearn_ext.feature_selection.JensenShannonDivergence for
+    more discussion on the potential importance/impact of class
+    imbalance with respect to bin size.
 
     Example
     -------
