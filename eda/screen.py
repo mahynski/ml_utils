@@ -11,8 +11,144 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import tqdm
+from sklearn.preprocessing import LabelEncoder
 
 from ml_utils.sklearn_ext.feature_selection import JensenShannonDivergence
+
+
+class JSBinary:
+    """
+    Look at pairwise "separability" accodring to the JensenShannonDivergence.
+
+    For a classification problem, look at the maximum JSD that can exists
+    across all features between pairs of classes.  This creates a binary
+    comparison between individual classes instead of a OvA comparison done in
+    JSScreen.
+    """
+
+    def __init__(self, js_bins=25):
+        """
+        Instantiate the class.
+
+        Parameters
+        ----------
+        js_bins : int
+            Number of bins to use when computing the Jensen-Shannon
+            divergence.
+        """
+        self.set_params(
+            **{
+                "js_bins": js_bins,
+            }
+        )
+        return
+
+    def set_params(self, **parameters):
+        """Set parameters; for consistency with sklearn's estimator API."""
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
+    def get_params(self, deep=True):
+        """Get parameters; for consistency with sklearn's estimator API."""
+        return {
+            "js_bins": self.js_bins,
+        }
+
+    def fit(self, X, y):
+        """
+        Fit the screen to data.
+
+        Parameters
+        ----------
+        X : array-like
+            Features (columns) and observations (rows).
+        y : array-like
+            Ground truth classes.
+        """
+        js = JensenShannonDivergence(
+            **{
+                "per_class": True,  # Sorts by max automatically
+                "feature_names": None,  # Index
+                "bins": self.js_bins,
+            }
+        )
+
+        self.__enc_ = LabelEncoder()
+        self.__enc_.fit(y)
+        self.__matrix_ = np.zeros(
+            (len(self.__enc_.classes_), len(self.__enc_.classes_))
+        )
+        self.__top_feature_ = np.empty(
+            (len(self.__enc_.classes_), len(self.__enc_.classes_)), dtype=object
+        )
+        for pairs in itertools.combinations(np.unique(y), r=2):
+            # 2. Compute (max) JS divergence
+            mask = (y == pairs[0]) | (y == pairs[1])
+
+            # Binary so divergences are the same, just take the first
+            div = js.fit(X[mask], y[mask]).divergence
+            x = div[pairs[0]][0][1][pairs[0]]
+            feature = div[pairs[0]][0][0]
+            assert div[pairs[1]][0][1][pairs[1]] == x
+
+            i, j = self.__enc_.transform(pairs)
+            self.__matrix_[i][j] = x
+            self.__matrix_[j][i] = x
+            self.__top_feature_[i][j] = feature
+            self.__top_feature_[j][i] = feature
+
+        return self
+
+    @property
+    def matrix(self):
+        """Return the matrix of maximum JS divergence values."""
+        return self.__matrix_.copy()
+
+    def top_features(self, feature_names=None):
+        """
+        Return which feature was responsible for the max JS divergence.
+
+        Parameters
+        ----------
+        feature_names : array-like
+            List of feature names. Results are internally stored as
+            indices so if this is provided, converts indices to names
+            based on this array; otherwise a matrix of indices is
+            returned.
+
+        Example
+        -------
+        >>> jsb.top_features(feature_names=X.columns)
+        """
+        if feature_names is None:
+            return self.__top_feature_.copy()
+        else:
+            names = np.empty_like(self.__top_feature_)
+            for i in range(names.shape[0]):
+                for j in range(names.shape[1]):
+                    if i != j:
+                        names[i, j] = feature_names[self.__top_feature_[i, j]]
+                    else:
+                        names[i, j] = "NONE"
+            return names
+
+    def visualize(self, ax=None):
+        """Visualize the results with a heatmap."""
+        if ax is None:
+            ax = plt.figure().gca()
+
+        ax = sns.heatmap(
+            self.matrix,
+            ax=ax,
+            annot=True,
+            xticklabels=self.__enc_.classes_,
+            yticklabels=self.__enc_.classes_,
+        )
+        ax.set_yticklabels(ax.get_yticklabels(), rotation=0)
+        ax.set_title(r"Maximum Pairwise $\nabla \cdot JS$")
+
+        return ax
 
 
 class JSScreen:
@@ -86,8 +222,8 @@ class JSScreen:
     def get_params(self, deep=True):
         """Get parameters; for consistency with sklearn's estimator API."""
         return {
-            "feature_names": self.feature_names,
             "n": self.n,
+            "feature_names": self.feature_names,
             "js_bins": self.js_bins,
         }
 
