@@ -34,7 +34,19 @@ class JensenShannonDivergence:
     trees are likely to be successful if trained using those features.
     Therefore, this can be used as a feature selection method; alternatively,
     this can be used during the initial data analysis or exploratory data
-    analysis phases to
+    analysis phases to generate hypotheses.
+
+    A suggestion for choosing the number of bins is to ensure the average
+    number of points per bin is >= 5.  So if you have n_samples, the number
+    of bins ~ n_samples/5.  This is a heuristic.  Also no n_samples is the
+    total number of samples, regardless of class - since the distribution is
+    going to be divided up to do a OvA comparison and both the "O" and "A"
+    must be histogrammed using the same bins, it makes sense to look at the
+    overall distribution.  However, this can cause issues if you have a
+    minority class that is poorly sampled.  One solution could be do SMOTE
+    in advance of any such calculation.  Since the JS divergence is (also)
+    supervised, these should both appear in the pipeline for
+    cross-validation anyway.  The example below illustrates this.
 
     Notes
     -----
@@ -54,7 +66,6 @@ class JensenShannonDivergence:
     can be very problematic because they cause the the (max-min)
     range to be amplified artificially, which might actually make
     divergences look small because the bins are now too coarse.
-
 
     References
     -----
@@ -143,7 +154,7 @@ class JensenShannonDivergence:
             "bins": self.bins,
         }
 
-    def make_prob_(self, p, ranges, bins=100):
+    def make_prob_(self, p, ranges, bins=25):
         """Make the probability distribution for a feature."""
         prob, _ = np.histogram(p, bins=bins, range=ranges)
         return (prob + self.epsilon) / np.sum(prob)
