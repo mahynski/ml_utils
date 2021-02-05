@@ -288,10 +288,6 @@ class JSScreen:
             else:
                 y_macro.append(string_row)
         y_macro = np.array(y_macro, dtype=str)
-        """y_macro = np.array(y)
-        mask = np.array([x in macroclass for x in y_macro])
-        namer = JSScreen.merge if naming is None else naming
-        y_macro[mask] = namer(macroclass)"""
 
         return y_macro
 
@@ -339,6 +335,8 @@ class JSScreen:
     def fit(self, X, y):
         """
         Fit the screen to data.
+
+        y is converted to a numpy array of strings automatically.
 
         Parameters
         ----------
@@ -523,6 +521,14 @@ class JSScreen:
         them less `min_delta` (i.e., merging is exclusively increasing the
         distinguishibility of the macroclass rather than one simply "bringing
         up the average").
+
+        Because the divergences must be low for the atomic classes, it can 
+        happen that this proposes (B,C,D) as a class (whose complement is A)
+        but not (A,) directly; this ie because B,C,D may overlap each other
+        and so have low JS divergences, while A may be easily separable to
+        begin with so it fails that check.  Ultimately, the result is the same
+        but it might seem counterintuitive that this does not always propose
+        "symmetric" suggestions.
 
         Example
         -------
