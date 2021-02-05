@@ -260,6 +260,8 @@ class JSScreen:
         """
         Transform classes into a macroclass.
 
+        All entries are turned into strings during this process.
+
         Parameters
         ----------
         y : array-like
@@ -272,13 +274,24 @@ class JSScreen:
 
         Returns
         -------
-        macro : array-like
+        macro : ndarray(str)
             Classes after merging atomic ones into the macroclass.
         """
-        y_macro = np.array(y)
+        namer = JSScreen.merge if naming is None else naming
+        string_macro = tuple([str(x) for x in macroclass])
+        macro_name = namer(macroclass)
+        y_macro = []
+        for row in y:
+            string_row = str(row)
+            if string_row in string_macro:
+                y_macro.append(macro_name)
+            else:
+                y_macro.append(string_row)
+        y_macro = np.array(y_macro, dtype=str)
+        """y_macro = np.array(y)
         mask = np.array([x in macroclass for x in y_macro])
         namer = JSScreen.merge if naming is None else naming
-        y_macro[mask] = namer(macroclass)
+        y_macro[mask] = namer(macroclass)"""
 
         return y_macro
 
