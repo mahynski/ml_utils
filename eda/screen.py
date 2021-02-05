@@ -522,7 +522,7 @@ class JSScreen:
         distinguishibility of the macroclass rather than one simply "bringing
         up the average").
 
-        Because the divergences must be low for the atomic classes, it can 
+        Because the divergences must be low for the atomic classes, it can
         happen that this proposes (B,C,D) as a class (whose complement is A)
         but not (A,) directly; this ie because B,C,D may overlap each other
         and so have low JS divergences, while A may be easily separable to
@@ -530,30 +530,12 @@ class JSScreen:
         but it might seem counterintuitive that this does not always propose
         "symmetric" suggestions.
 
-        Example
-        -------
-        >>> interest = screen.interesting()
-        >>> proposed_combinations = {}
-        >>> performances = {}
-        >>> idx = 0
-        >>> for row in interest:
-        ...     union = set(row[0][0].split(" AND ")).union({row[0][1]})
-        ...     add = True
-        ...     for k,v in proposed_combinations.items():
-        ...         if v == union:
-        ...             add = False
-        ...             break
-        ...     if add:
-        ...         proposed_combinations[idx] = union
-        ...         performances[idx] = row[1]['final']
-        ...         idx += 1
-        >>> proposed_combinations # Look at unique sets of interesting ones
-
         Returns
         -------
-        incremental : list([tuple(macroclass, addition), {'delta':change,
-        'final':JS, 'individuals':{class:JS}}])
-            Merges that are considered "interesting."
+        incremental, proposed_combinations : list([tuple(macroclass, addition),
+        {'delta':change, 'final':JS, 'individuals':{class:JS}}]), dict(set))
+            Merges that are considered "interesting", dictionary of unique sets
+            formed from these merges.
         """
         interest = []
         for row in self.incremental(method=method):
@@ -567,7 +549,23 @@ class JSScreen:
                 )
             ):
                 interest.append(row)
-        return interest
+
+        proposed_combinations = {}
+        performances = {}
+        idx = 0
+        for row in interest:
+            union = set(self.merge(row[0][0], split=True)).union({row[0][1]})
+            add = True
+            for k, v in proposed_combinations.items():
+                if v == union:
+                    add = False
+                    break
+            if add:
+                proposed_combinations[idx] = union
+                performances[idx] = row[1]["final"]
+                idx += 1
+
+        return interest, proposed_combinations
 
     def incremental(self, method="max"):
         """
