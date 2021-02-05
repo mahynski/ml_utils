@@ -335,7 +335,7 @@ class JSScreen:
             Ground truth classes.
         """
         self.__X_ = np.array(X)
-        self.__y_ = np.array(y)
+        self.__y_ = np.array(y, dtype=str)
         assert self.__X_.shape[0] == self.__y_.shape[0]
         self.__transforms_ = self.all_sets_(self.__y_, self.n)
 
