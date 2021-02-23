@@ -56,7 +56,7 @@ class JSBinary:
         """Get parameters; for consistency with sklearn's estimator API."""
         return {
             "js_bins": self.js_bins,
-            "robust", self.robust
+            "robust": self.robust
         }
 
     def fit(self, X, y):
