@@ -26,7 +26,7 @@ class JSBinary:
     JSScreen.
     """
 
-    def __init__(self, js_bins=25):
+    def __init__(self, js_bins=25, robust=False):
         """
         Instantiate the class.
 
@@ -35,10 +35,13 @@ class JSBinary:
         js_bins : int
             Number of bins to use when computing the Jensen-Shannon
             divergence.
+        robust : bool
+            Whether to robust option for JensenShannonDivergence.
         """
         self.set_params(
             **{
                 "js_bins": js_bins,
+                "robust": robust
             }
         )
         return
@@ -53,6 +56,7 @@ class JSBinary:
         """Get parameters; for consistency with sklearn's estimator API."""
         return {
             "js_bins": self.js_bins,
+            "robust", self.robust
         }
 
     def fit(self, X, y):
@@ -71,6 +75,7 @@ class JSBinary:
                 "per_class": True,  # Sorts by max automatically
                 "feature_names": None,  # Index
                 "bins": self.js_bins,
+                "robust": self.robust
             }
         )
 
@@ -188,7 +193,7 @@ class JSScreen:
     >>> screen.visualize(plt.figure(figsize=(20,20)).gca())
     """
 
-    def __init__(self, n=None, feature_names=None, js_bins=25):
+    def __init__(self, n=None, feature_names=None, js_bins=25, robust=False):
         """
         Instantiate the class.
 
@@ -203,12 +208,15 @@ class JSScreen:
         js_bins : int
             Number of bins to use when computing the Jensen-Shannon
             divergence.
+        robust : bool
+            Whether or not use the robust option in JensenShannonDivergence.
         """
         self.set_params(
             **{
                 "feature_names": np.array(feature_names, dtype=object),
                 "n": n,
                 "js_bins": js_bins,
+                "robust": robust
             }
         )
         return
@@ -225,6 +233,7 @@ class JSScreen:
             "n": self.n,
             "feature_names": self.feature_names,
             "js_bins": self.js_bins,
+            "robust": self.robust
         }
 
     @staticmethod
@@ -355,6 +364,7 @@ class JSScreen:
                 "per_class": False,
                 "feature_names": None,  # Index
                 "bins": self.js_bins,
+                "robust": self.robust
             }
         )
 
