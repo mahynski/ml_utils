@@ -30,10 +30,15 @@ class TestJensenShannonDivergence(unittest.TestCase):
             "per_class": True,
             "feature_names": ["a", "b", "c"],
             "bins": 7,
+            "robust": False,
         }
         js = JensenShannonDivergence(**given)
         returned = js.get_params()
+        self.assertEqual(given, returned)
 
+        given["robust"] = True
+        js = JensenShannonDivergence(**given)
+        returned = js.get_params()
         self.assertEqual(given, returned)
 
     def test_make_prob(self):
@@ -82,6 +87,32 @@ class TestJensenShannonDivergence(unittest.TestCase):
         """Test fitting on a per_class basis."""
         self.js.fit(self.X, self.y)
         div = self.js.divergence
+
+        # Feature 0, A and B disjoint (same for both classes) and
+        # feature 0 is the leading divergence.
+        self.assertAlmostEqual(div["A"][0][0], 0)
+        self.assertAlmostEqual(div["B"][0][0], 0)
+        self.assertAlmostEqual(div["A"][0][1]["A"], 1.0)
+        self.assertAlmostEqual(div["A"][0][1]["B"], 1.0)
+        self.assertAlmostEqual(div["B"][0][1]["A"], 1.0)
+        self.assertAlmostEqual(div["B"][0][1]["B"], 1.0)
+
+        # Feature 1 has the second highest divergence.
+        self.assertAlmostEqual(div["A"][1][0], 1)
+        self.assertAlmostEqual(div["B"][1][0], 1)
+        self.assertAlmostEqual(div["A"][1][1]["A"], 2 / 3.0)
+        self.assertAlmostEqual(div["A"][1][1]["B"], 2 / 3.0)
+        self.assertAlmostEqual(div["B"][1][1]["A"], 2 / 3.0)
+        self.assertAlmostEqual(div["B"][1][1]["B"], 2 / 3.0)
+
+    def test_outlier(self):
+        """Test outlier removal."""
+        # Outlier should be removed and so results shouldn't change
+        X = np.vstack((self.X, [[100, 100]]))
+        y = np.concatenate((self.y, ["A"]))
+        js = JensenShannonDivergence(top_k=1, per_class=True, robust=True)
+        js.fit(X, y)
+        div = js.divergence
 
         # Feature 0, A and B disjoint (same for both classes) and
         # feature 0 is the leading divergence.
