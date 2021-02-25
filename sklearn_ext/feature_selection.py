@@ -39,7 +39,7 @@ class JensenShannonDivergence:
 
     A suggestion for choosing the number of bins is to ensure the average
     number of points per bin is >= 5.  So if you have n_samples, the number
-    of bins ~ n_samples/5.  This is a heuristic.  Also no n_samples is the
+    of bins ~ n_samples/5.  This is a heuristic.  Also note n_samples is the
     total number of samples, regardless of class - since the distribution is
     going to be divided up to do a OvA comparison and both the "O" and "A"
     must be histogrammed using the same bins, it makes sense to look at the
@@ -68,6 +68,11 @@ class JensenShannonDivergence:
     range to be amplified artificially, which might actually make
     divergences look small because the bins are now too coarse. Use the robust
     option to investigate this.
+    * As a counterargument, if a minority class is well separated by a
+    feature, it could be that the entire class is considered an outlier
+    and the code will return a NaN for that feature.  Investigate further
+    and avoid using the `robust` option in that case.
+
 
     References
     -----
@@ -196,17 +201,18 @@ class JensenShannonDivergence:
 
         def compute_(column):
             if self.robust:
-                # Use IQR to determine outliers
+                # Use IQR to determine outliers - don't go past min/max
+                # of data though
                 iqr = scipy.stats.iqr(self.__X_[:, column], rng=(25, 75))
                 ranges = (
-                    np.percentile(
+                    np.max([np.percentile(
                         self.__X_[:, column], 25, interpolation="midpoint"
                     )
-                    - 1.5 * iqr,
-                    np.percentile(
+                    - 1.5 * iqr, np.min(self.__X_[:, column])]),
+                    np.min([np.percentile(
                         self.__X_[:, column], 75, interpolation="midpoint"
                     )
-                    + 1.5 * iqr,
+                    + 1.5 * iqr, np.max(self.__X_[:, column])]),
                 )
             else:
                 ranges = (
